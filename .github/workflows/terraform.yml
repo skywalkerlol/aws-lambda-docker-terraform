@@ -196,6 +196,11 @@ jobs:
     name: Build and Push Docker Image
     needs: ecr_create
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+      pull-requests: write
+      security-events: write 
     if: needs.ecr_create.outputs.ecr_exists == 'true'
     defaults:
       run:
