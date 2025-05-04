@@ -163,28 +163,35 @@ jobs:
       #if: github.ref == 'refs/heads/main'
       run: |
         terraform apply -auto-approve -input=false
-        # Store outputs directly using the new environment file syntax
-        echo "ecr_repo_name=$(terraform output -raw repository_name)" >> $GITHUB_OUTPUT
-        echo "ecr_repo_url=$(terraform output -raw repository_url)" >> $GITHUB_OUTPUT
-
-    - name: Check if ECR exists
-      id: check_ecr
+    - name: Terraform Output
+      id: output
+      run : |
+        REPO_URL=$(terraform output -raw repository_url)
+        REPO_NAME=$(terraform output -raw repository_name)
+        echo "repository_url=$REPO_URL" >> $GITHUB_OUTPUT
+        echo "repository_name=$REPO_NAME" >> $GITHUB_OUTPUT
+    - name: Print Terraform Outputs
       run: |
-        # Extract just the repository name from the complex output
-        REPO_NAME=$(echo "${{ steps.apply.outputs.ecr_repo_name }}")              
-        echo "Extracted repository name: $REPO_NAME"
+        echo "Repository URL: ${{ steps.output.outputs.repository_url }}"
+        echo "Repository Name: ${{ steps.output.outputs.repository_name }}"
+    # - name: Check if ECR exists
+    #   id: check_ecr
+    #   run: |
+    #     # Extract just the repository name from the complex output
+    #     REPO_NAME=$(echo "${{ steps.output.outputs.ecr_repo_name }}")              
+    #     echo "Extracted repository name: $REPO_NAME"
 
-        if [ -z "$REPO_NAME" ]; then
-          echo "Error: Repository name is empty"
-          echo "exists=false" >> "$GITHUB_OUTPUT"
-          exit 0
-        fi
+    #     if [ -z "$REPO_NAME" ]; then
+    #       echo "Error: Repository name is empty"
+    #       echo "exists=false" >> "$GITHUB_OUTPUT"
+    #       exit 0
+    #     fi
 
-        if aws ecr describe-repositories --repository-names "$REPO_NAME" 2>/dev/null; then
-          echo "exists=true" >> "$GITHUB_OUTPUT"
-        else
-          echo "exists=false" >> "$GITHUB_OUTPUT"
-        fi
+    #     if aws ecr describe-repositories --repository-names "$REPO_NAME" 2>/dev/null; then
+    #       echo "exists=true" >> "$GITHUB_OUTPUT"
+    #     else
+    #       echo "exists=false" >> "$GITHUB_OUTPUT"
+    #     fi
       #if: github.ref == 'refs/heads/main'
   # docker_build_push:
   #   name: Build and Push Docker Image
