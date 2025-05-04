@@ -177,7 +177,7 @@ jobs:
       id: check_ecr
       run: |
         # Extract just the repository name from the complex output
-        REPO_NAME=$(echo "${{ steps.output.outputs.ecr_repo_name }}")              
+        REPO_NAME=$(echo "${{ steps.output.outputs.repository_name }}")              
         echo "Extracted repository name: $REPO_NAME"
 
         if [ -z "$REPO_NAME" ]; then
@@ -202,7 +202,7 @@ jobs:
         shell: bash
         working-directory: ./lambda_src
     env:
-      ECR_REPOSITORY: ${{ needs.ecr_create.outputs.ecr_repo_name }}
+      ECR_REPOSITORY: ${{ needs.ecr_create.outputs.repository_name }}
 
     steps:
       - name: Checkout
