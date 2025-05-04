@@ -249,7 +249,7 @@ jobs:
           format: 'sarif'
           output: 'trivy-results.sarif'
       - name: Upload Trivy scan results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v2
+        uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: 'trivy-results.sarif'
       # Push the Docker image to Amazon ECR, but only if the even is not a pull request.
@@ -259,7 +259,7 @@ jobs:
           REPOSITORY: ${{ env.ECR_REPOSITORY }}
           IMAGE_TAG: ${{ env.TAG_NAME }}
         run: docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
-        if: github.event_name != 'pull_request'
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
       - name: Create output file
         id: create-output
         env:
@@ -267,7 +267,7 @@ jobs:
           REPOSITORY: ${{ env.ECR_REPOSITORY }}
           IMAGE_TAG: ${{ env.TAG_NAME }}
         run: echo "IMAGE_ID=$REGISTRY/$REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
-        if: github.event_name != 'pull_request'
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     outputs:
         image_id: ${{ steps.create-output.outputs.IMAGE_ID }}
         image_tag: ${{ steps.tag.outputs.image_tag }}
