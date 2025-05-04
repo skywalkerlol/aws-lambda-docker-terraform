@@ -32,7 +32,8 @@ jobs:
         working-directory: ./terraform_ecr
     outputs:
       ecr_exists: ${{ steps.check_ecr.outputs.exists }}
-      ecr_repo_url: ${{ steps.apply.outputs.ecr_repo_url }}
+      repository_url: ${{ steps.apply.outputs.repository_url }}
+      repository_name: ${{ steps.output.outputs.repository_name }}
     steps:
     # Checkout the repository to the GitHub Actions runner
     - name: Checkout
