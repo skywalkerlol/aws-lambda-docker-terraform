@@ -163,16 +163,9 @@ jobs:
       #if: github.ref == 'refs/heads/main'
       run: |
         terraform apply -auto-approve -input=false
-        # Store outputs in temporary files to avoid command interpolation
-        terraform output -raw repository_url > url.txt
-        terraform output -raw repository_name > name.txt
-        ECR_REPO_URL=$(cat url.txt)
-        ECR_REPO_NAME=$(cat name.txt)
-        {
-          echo "ecr_repo_name=${ECR_REPO_NAME}"
-          echo "ecr_repo_url=${ECR_REPO_URL}"
-        } >> "$GITHUB_OUTPUT"
-        rm url.txt name.txt
+        # Store outputs directly using the new environment file syntax
+        echo "ecr_repo_name=$(terraform output -raw repository_name)" >> $GITHUB_OUTPUT
+        echo "ecr_repo_url=$(terraform output -raw repository_url)" >> $GITHUB_OUTPUT
 
     - name: Check if ECR exists
       id: check_ecr
