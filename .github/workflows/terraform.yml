@@ -173,101 +173,97 @@ jobs:
 
         echo "repository_url=$REPO_URL" >> $GITHUB_OUTPUT
         echo "repository_name=$REPO_NAME" >> $GITHUB_OUTPUT
-    - name: Print Terraform Outputs
+    - name: Check if ECR exists
+      id: check_ecr
       run: |
-        echo "Repository URL: ${{ steps.output.outputs.repository_url }}"
-        echo "Repository Name: ${{ steps.output.outputs.repository_name }}"
-    # - name: Check if ECR exists
-    #   id: check_ecr
-    #   run: |
-    #     # Extract just the repository name from the complex output
-    #     REPO_NAME=$(echo "${{ steps.output.outputs.ecr_repo_name }}")              
-    #     echo "Extracted repository name: $REPO_NAME"
+        # Extract just the repository name from the complex output
+        REPO_NAME=$(echo "${{ steps.output.outputs.ecr_repo_name }}")              
+        echo "Extracted repository name: $REPO_NAME"
 
-    #     if [ -z "$REPO_NAME" ]; then
-    #       echo "Error: Repository name is empty"
-    #       echo "exists=false" >> "$GITHUB_OUTPUT"
-    #       exit 0
-    #     fi
+        if [ -z "$REPO_NAME" ]; then
+          echo "Error: Repository name is empty"
+          echo "exists=false" >> "$GITHUB_OUTPUT"
+          exit 0
+        fi
 
-    #     if aws ecr describe-repositories --repository-names "$REPO_NAME" 2>/dev/null; then
-    #       echo "exists=true" >> "$GITHUB_OUTPUT"
-    #     else
-    #       echo "exists=false" >> "$GITHUB_OUTPUT"
-    #     fi
+        if aws ecr describe-repositories --repository-names "$REPO_NAME" 2>/dev/null; then
+          echo "exists=true" >> "$GITHUB_OUTPUT"
+        else
+          echo "exists=false" >> "$GITHUB_OUTPUT"
+        fi
       #if: github.ref == 'refs/heads/main'
-  # docker_build_push:
-  #   name: Build and Push Docker Image
-  #   needs: ecr_create
-  #   runs-on: ubuntu-latest
-  #   if: needs.ecr_create.outputs.ecr_exists == 'true'
-  #   defaults:
-  #     run:
-  #       shell: bash
-  #       working-directory: ./lambda_src
-  #   env:
-  #     ECR_REPOSITORY: ${{ needs.ecr_create.outputs.ecr_repo_name }}
+  docker_build_push:
+    name: Build and Push Docker Image
+    needs: ecr_create
+    runs-on: ubuntu-latest
+    if: needs.ecr_create.outputs.ecr_exists == 'true'
+    defaults:
+      run:
+        shell: bash
+        working-directory: ./lambda_src
+    env:
+      ECR_REPOSITORY: ${{ needs.ecr_create.outputs.ecr_repo_name }}
 
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v3
-  #     - name: Generate Image Tag
-  #       id: tag
-  #       run: echo "TAG_NAME=$(date +'%Y%m%d').${{ github.run_number }}.${{ github.run_attempt }}" >> $GITHUB_ENV
-  #     - name: Print Image Tag
-  #       run: echo "Tag Name for the Image ${{ env.TAG_NAME }}"
-  #     # https://github.com/marketplace/actions/configure-aws-credentials-action-for-github-actions
-  #     - name: Configure AWS Credentials Action For GitHub Actions
-  #       uses: aws-actions/configure-aws-credentials@v4
-  #       with:
-  #         role-to-assume: ${{ secrets.IAM_ROLE }}
-  #         role-session-name: AWSSession
-  #         aws-region: ${{ env.AWS_REGION }}
-  #     # https://github.com/marketplace/actions/amazon-ecr-login-action-for-github-actions
-  #     - name: Login to Amazon ECR Private
-  #       id: login-ecr
-  #       uses: aws-actions/amazon-ecr-login@v2.0.1
-  #       with:
-  #         mask-password: 'true'
-  #     - name: Build and tag docker image to Amazon ECR
-  #       env:
-  #         REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-  #         REPOSITORY: ${{ env.ECR_REPOSITORY }}
-  #         IMAGE_TAG: ${{ env.TAG_NAME }}
-  #       run: docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG .
-  #     # https://github.com/marketplace/actions/aqua-security-trivy
-  #     - name: Run Trivy vulnerability scanner
-  #       uses: aquasecurity/trivy-action@0.28.0
-  #       env:
-  #         REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-  #         REPOSITORY: ${{ env.ECR_REPOSITORY }}
-  #         IMAGE_TAG: ${{ env.TAG_NAME }}
-  #       with:
-  #         image-ref: '${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.TAG_NAME }}'
-  #         format: 'sarif'
-  #         output: 'trivy-results.sarif'
-  #     - name: Upload Trivy scan results to GitHub Security tab
-  #       uses: github/codeql-action/upload-sarif@v2
-  #       with:
-  #         sarif_file: 'trivy-results.sarif'
-  #     # Push the Docker image to Amazon ECR, but only if the even is not a pull request.
-  #     - name: Push docker image to Amazon ECR
-  #       env:
-  #         REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-  #         REPOSITORY: ${{ env.ECR_REPOSITORY }}
-  #         IMAGE_TAG: ${{ env.TAG_NAME }}
-  #       run: docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
-  #       if: github.event_name != 'pull_request'
-  #     - name: Create output file
-  #       id: create-output
-  #       env:
-  #         REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-  #         REPOSITORY: ${{ env.ECR_REPOSITORY }}
-  #         IMAGE_TAG: ${{ env.TAG_NAME }}
-  #       run: echo "IMAGE_ID=$REGISTRY/$REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
-  #       if: github.event_name != 'pull_request'
-  #   outputs:
-  #       image_id: ${{ steps.create-output.outputs.IMAGE_ID }}
-  #       image_tag: ${{ steps.tag.outputs.image_tag }}
-  #       full_image_uri: ${{ steps.push.outputs.full_image_uri }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Generate Image Tag
+        id: tag
+        run: echo "TAG_NAME=$(date +'%Y%m%d').${{ github.run_number }}.${{ github.run_attempt }}" >> $GITHUB_ENV
+      - name: Print Image Tag
+        run: echo "Tag Name for the Image ${{ env.TAG_NAME }}"
+      # https://github.com/marketplace/actions/configure-aws-credentials-action-for-github-actions
+      - name: Configure AWS Credentials Action For GitHub Actions
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.IAM_ROLE }}
+          role-session-name: AWSSession
+          aws-region: ${{ env.AWS_REGION }}
+      # https://github.com/marketplace/actions/amazon-ecr-login-action-for-github-actions
+      - name: Login to Amazon ECR Private
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2.0.1
+        with:
+          mask-password: 'true'
+      - name: Build and tag docker image to Amazon ECR
+        env:
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          REPOSITORY: ${{ env.ECR_REPOSITORY }}
+          IMAGE_TAG: ${{ env.TAG_NAME }}
+        run: docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG .
+      # https://github.com/marketplace/actions/aqua-security-trivy
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@0.28.0
+        env:
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          REPOSITORY: ${{ env.ECR_REPOSITORY }}
+          IMAGE_TAG: ${{ env.TAG_NAME }}
+        with:
+          image-ref: '${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.TAG_NAME }}'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: 'trivy-results.sarif'
+      # Push the Docker image to Amazon ECR, but only if the even is not a pull request.
+      - name: Push docker image to Amazon ECR
+        env:
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          REPOSITORY: ${{ env.ECR_REPOSITORY }}
+          IMAGE_TAG: ${{ env.TAG_NAME }}
+        run: docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
+        if: github.event_name != 'pull_request'
+      - name: Create output file
+        id: create-output
+        env:
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          REPOSITORY: ${{ env.ECR_REPOSITORY }}
+          IMAGE_TAG: ${{ env.TAG_NAME }}
+        run: echo "IMAGE_ID=$REGISTRY/$REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+        if: github.event_name != 'pull_request'
+    outputs:
+        image_id: ${{ steps.create-output.outputs.IMAGE_ID }}
+        image_tag: ${{ steps.tag.outputs.image_tag }}
+        full_image_uri: ${{ steps.push.outputs.full_image_uri }}
 
