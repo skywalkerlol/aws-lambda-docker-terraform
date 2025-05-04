@@ -167,12 +167,10 @@ jobs:
         terraform apply -auto-approve -input=false
     - name: Terraform Output
       id: output
-      env:
-        TF_LOG: error
-      run : |
-        OUTPUT=$(terraform output -json)
-        REPO_URL=$(echo "$OUTPUT" | jq -r '.repository_url.value')
-        REPO_NAME=$(echo "$OUTPUT" | jq -r '.repository_name.value')
+      run: |
+        REPO_URL=$(terraform output -raw repository_url)
+        REPO_NAME=$(terraform output -raw repository_name)
+
         echo "repository_url=$REPO_URL" >> $GITHUB_OUTPUT
         echo "repository_name=$REPO_NAME" >> $GITHUB_OUTPUT
     - name: Print Terraform Outputs
