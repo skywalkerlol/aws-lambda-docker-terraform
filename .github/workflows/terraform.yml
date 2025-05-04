@@ -174,8 +174,7 @@ jobs:
       id: check_ecr
       run: |
         # Extract just the repository name from the complex output
-        REPO_NAME=$(echo "${{ steps.apply.outputs.ecr_repo_name }}" | grep -o 'app-10' || echo '')
-              
+        REPO_NAME=$(echo "${{ steps.apply.outputs.ecr_repo_name }}")              
         echo "Extracted repository name: $REPO_NAME"
 
         if [ -z "$REPO_NAME" ]; then
