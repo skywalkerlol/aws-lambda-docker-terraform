@@ -163,8 +163,8 @@ jobs:
       #if: github.ref == 'refs/heads/main'
       run: |
         terraform apply -auto-approve -input=false
-        ECR_REPO_URL=$(terraform output -raw repository_url)
-        ECR_REPO_NAME=$(terraform output -raw repository_name)
+        ECR_REPO_URL=$(terraform output -raw repository_url | tr -d '\n')
+        ECR_REPO_NAME=$(terraform output -raw repository_name | tr -d '\n')
         {
           echo "ecr_repo_name=${ECR_REPO_NAME}"
           echo "ecr_repo_url=${ECR_REPO_URL}"
