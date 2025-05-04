@@ -160,13 +160,15 @@ jobs:
     # Note: It is recommended to set up a required "strict" status check in your repository for "Terraform Cloud". See the documentation on "strict" required status checks for more information: https://help.github.com/en/github/administering-a-repository/types-of-required-status-checks
     - name: Terraform Apply
       id: apply
-      if: github.ref == 'refs/heads/main'
+      #if: github.ref == 'refs/heads/main'
       run: |
         terraform apply -auto-approve -input=false
         ECR_REPO_URL=$(terraform output -raw repository_url)
         ECR_REPO_NAME=$(terraform output -raw repository_name)
-        echo "ecr_repo_url=$ECR_REPO_URL" >> "$GITHUB_OUTPUT"
-        echo "ecr_repo_name=$ECR_REPO_NAME" >> "$GITHUB_OUTPUT"
+        {
+          echo "ecr_repo_url=${ECR_REPO_URL}"
+          echo "ecr_repo_name=${ECR_REPO_NAME}"
+        } >> "$GITHUB_OUTPUT"
 
     - name: Check if ECR exists
       id: check_ecr
@@ -186,7 +188,7 @@ jobs:
             echo "exists=false" >> "$GITHUB_OUTPUT"
           fi
       shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
-      if: github.ref == 'refs/heads/main'
+      #if: github.ref == 'refs/heads/main'
   docker_build_push:
     name: Build and Push Docker Image
     needs: ecr_create
