@@ -166,7 +166,7 @@ jobs:
         ECR_REPO_URL=$(terraform output -raw repository_url)
         ECR_REPO_NAME=$(terraform output -raw repository_name)
         echo "ecr_repo_url=$ECR_REPO_URL" >> "$GITHUB_OUTPUT"
-        echo "ecr_repo_name= $ECR_REPO_NAME" >> "$GITHUB_OUTPUT"
+        echo "ecr_repo_name=$ECR_REPO_NAME" >> "$GITHUB_OUTPUT"
 
     - name: Check if ECR exists
       id: check_ecr
