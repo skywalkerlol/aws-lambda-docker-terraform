@@ -1,7 +1,7 @@
 FROM public.ecr.aws/lambda/python:3.9
 
 # Copy function code
-COPY app.py ./
+COPY handler.py ./
 COPY requirements.txt ./
 
 # Install dependencies
