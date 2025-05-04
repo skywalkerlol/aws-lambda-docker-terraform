@@ -168,8 +168,9 @@ jobs:
       env:
         TF_LOG: error
       run : |
-        REPO_URL=$(terraform output -raw repository_url 2>/dev/null)
-        REPO_NAME=$(terraform output -raw repository_name 2>/dev/null)
+        OUTPUT=$(terraform output -json)
+        REPO_URL=$(echo "$OUTPUT" | jq -r '.repository_url.value')
+        REPO_NAME=$(echo "$OUTPUT" | jq -r '.repository_name.value')
         echo "repository_url=$REPO_URL" >> $GITHUB_OUTPUT
         echo "repository_name=$REPO_NAME" >> $GITHUB_OUTPUT
     - name: Print Terraform Outputs
