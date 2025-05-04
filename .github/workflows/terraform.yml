@@ -171,12 +171,22 @@ jobs:
     - name: Check if ECR exists
       id: check_ecr
       run: |
-        if aws ecr describe-repositories --repository-names ${{ steps.apply.outputs.ecr_repo_name }}; then
-          echo "exists=true" >> "$GITHUB_OUTPUT"
-        else
-          echo "exists=false" >> "$GITHUB_OUTPUT"
-        fi
-
+          REPO_NAME="${{ steps.apply.outputs.ecr_repo_name }}"
+          echo "Repository name: $REPO_NAME"
+          
+          if [ -z "$REPO_NAME" ]; then
+            echo "Error: Repository name is empty"
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          
+          if aws ecr describe-repositories --repository-names "$REPO_NAME" 2>/dev/null; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+      shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+      if: github.ref == 'refs/heads/main'
   # docker_build_push:
   #   name: Build and Push Docker Image
   #   needs: ecr_create
