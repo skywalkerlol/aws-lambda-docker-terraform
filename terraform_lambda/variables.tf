@@ -43,3 +43,21 @@ variable "create_function_url" {
   type        = bool
   default     = false
 }
+
+variable "subnet_ids" {
+  description = "List of subnet IDs for Lambda VPC configuration"
+  type        = list(string)
+  default     = []
+}
+
+variable "security_group_ids" {
+  description = "List of security group IDs for Lambda VPC configuration"
+  type        = list(string)
+  default     = []
+}
+
+variable "reserved_concurrency" {
+  description = "Reserved concurrent executions for the Lambda function"
+  type        = number
+  default     = 100
+}
