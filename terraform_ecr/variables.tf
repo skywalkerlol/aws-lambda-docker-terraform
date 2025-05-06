@@ -21,5 +21,5 @@ variable "secret_key" {
 variable "name" {
   description = "The name of the application."
   type        = string
-  default     = "app-10"
+  default     = "app-8"
 }
