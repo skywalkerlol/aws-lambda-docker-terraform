@@ -167,6 +167,7 @@ jobs:
       run: |
         terraform apply -auto-approve -input=false
     - name: Terraform Output
+      if: github.ref == 'refs/heads/main'
       id: output
       run: |
         REPO_URL=$(terraform output -raw repository_url)
