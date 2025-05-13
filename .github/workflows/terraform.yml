@@ -32,7 +32,8 @@ jobs:
         working-directory: ./terraform_ecr
     outputs:
       ecr_exists: ${{ steps.check_ecr.outputs.exists }}
-      ecr_repo_url: ${{ steps.apply.outputs.ecr_repo_url }}
+      repository_url: ${{ steps.apply.outputs.repository_url }}
+      repository_name: ${{ steps.output.outputs.repository_name }}
     steps:
     # Checkout the repository to the GitHub Actions runner
     - name: Checkout
@@ -47,7 +48,9 @@ jobs:
 
     # Install the latest version of Terraform CLI and configure the Terraform CLI configuration file with a Terraform Cloud user API token
     - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v1
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: 1.11.0
 
     - name: Setup Infracost
       uses: infracost/actions/setup@v2
@@ -163,42 +166,50 @@ jobs:
       if: github.ref == 'refs/heads/main'
       run: |
         terraform apply -auto-approve -input=false
-        ECR_REPO_URL=$(terraform output -raw repository_url)
-        ECR_REPO_NAME=$(terraform output -raw repository_name)
-        echo "ecr_repo_url=$ECR_REPO_URL" >> "$GITHUB_OUTPUT"
-        echo "ecr_repo_name=$ECR_REPO_NAME" >> "$GITHUB_OUTPUT"
+    - name: Terraform Output
+      if: github.ref == 'refs/heads/main'
+      id: output
+      run: |
+        REPO_URL=$(terraform output -raw repository_url)
+        REPO_NAME=$(terraform output -raw repository_name)
 
+        echo "repository_url=$REPO_URL" >> $GITHUB_OUTPUT
+        echo "repository_name=$REPO_NAME" >> $GITHUB_OUTPUT
     - name: Check if ECR exists
       id: check_ecr
       run: |
-          REPO_NAME="${{ steps.apply.outputs.ecr_repo_name }}"
-          echo "Repository name: $REPO_NAME"
-          
-          if [ -z "$REPO_NAME" ]; then
-            echo "Error: Repository name is empty"
-            echo "exists=false" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-          
-          if aws ecr describe-repositories --repository-names "$REPO_NAME" 2>/dev/null; then
-            echo "exists=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "exists=false" >> "$GITHUB_OUTPUT"
-          fi
-      shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
-      if: github.ref == 'refs/heads/main'
+        # Extract just the repository name from the complex output
+        REPO_NAME=$(echo "${{ steps.output.outputs.repository_name }}")              
+        echo "Extracted repository name: $REPO_NAME"
+
+        if [ -z "$REPO_NAME" ]; then
+          echo "Error: Repository name is empty"
+          echo "exists=false" >> "$GITHUB_OUTPUT"
+          exit 0
+        fi
+
+        if aws ecr describe-repositories --repository-names "$REPO_NAME" 2>/dev/null; then
+          echo "exists=true" >> "$GITHUB_OUTPUT"
+        else
+          echo "exists=false" >> "$GITHUB_OUTPUT"
+        fi
   docker_build_push:
     name: Build and Push Docker Image
     needs: ecr_create
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+      pull-requests: write
+      security-events: write 
     if: needs.ecr_create.outputs.ecr_exists == 'true'
     defaults:
       run:
         shell: bash
         working-directory: ./lambda_src
     env:
-      ECR_REPOSITORY: ${{ needs.ecr_create.outputs.ecr_repo_name }}
-
+      ECR_REPOSITORY: ${{ needs.ecr_create.outputs.repository_name }}
+      AWS_REGION: us-east-2
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -238,7 +249,7 @@ jobs:
           format: 'sarif'
           output: 'trivy-results.sarif'
       - name: Upload Trivy scan results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v2
+        uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: 'trivy-results.sarif'
       # Push the Docker image to Amazon ECR, but only if the even is not a pull request.
@@ -248,7 +259,7 @@ jobs:
           REPOSITORY: ${{ env.ECR_REPOSITORY }}
           IMAGE_TAG: ${{ env.TAG_NAME }}
         run: docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
-        if: github.event_name != 'pull_request'
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
       - name: Create output file
         id: create-output
         env:
@@ -256,7 +267,7 @@ jobs:
           REPOSITORY: ${{ env.ECR_REPOSITORY }}
           IMAGE_TAG: ${{ env.TAG_NAME }}
         run: echo "IMAGE_ID=$REGISTRY/$REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
-        if: github.event_name != 'pull_request'
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     outputs:
         image_id: ${{ steps.create-output.outputs.IMAGE_ID }}
         image_tag: ${{ steps.tag.outputs.image_tag }}
