@@ -261,7 +261,9 @@ jobs:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           REPOSITORY: ${{ env.ECR_REPOSITORY }}
           IMAGE_TAG: ${{ env.TAG_NAME }}
-        run: docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
+        run: |
+          docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
+          echo "pushed=true" >> $GITHUB_OUTPUT
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
       - name: Create output file
         id: create-output
@@ -272,11 +274,13 @@ jobs:
         run: |
           echo "REPO_URI=$REGISTRY/$REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
           echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_OUTPUT
-        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+          echo "IMAGE_PUSHED=${{ steps.push-image.outputs.pushed || 'false' }}" >> $GITHUB_OUTPUT
+        continue-on-error: true
       
     outputs:
       repo_uri: ${{ steps.create-output.outputs.REPO_URI }}
       image_tag: ${{ steps.create-output.outputs.IMAGE_TAG }}
+      image_pushed: ${{ steps.create-output.outputs.IMAGE_PUSHED }}
 
   deploy_lambda:
     name: 'Deploy Lambda'
@@ -284,6 +288,7 @@ jobs:
     env:
       DOCKER_IMAGE_URI: ${{ needs.docker_build_push.outputs.repo_uri }}
       DOCKER_IMAGE_TAG: ${{ needs.docker_build_push.outputs.image_tag }}
+      NEW_IMAGE_PUSHED: ${{ needs.docker_build_push.outputs.image_pushed }}
 
     runs-on: ubuntu-latest
     permissions:
