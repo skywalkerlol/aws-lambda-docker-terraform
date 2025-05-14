@@ -3,9 +3,9 @@ resource "aws_lambda_function" "container_lambda" {
   role          = aws_iam_role.lambda_role.arn
   package_type  = "Image"
   image_uri     = var.image_uri
-  
-  timeout      = var.timeout
-  memory_size  = var.memory_size
+
+  timeout                        = var.timeout
+  memory_size                    = var.memory_size
   reserved_concurrent_executions = var.reserved_concurrency
 
   tracing_config {
@@ -56,7 +56,7 @@ resource "aws_iam_role_policy_attachment" "lambda_basic" {
 resource "aws_cloudwatch_log_group" "lambda_logs" {
   name              = "/aws/lambda/${var.function_name}"
   retention_in_days = 365 # Set to 1 year per compliance requirement
-  kms_key_id       = aws_kms_key.lambda_key.arn
+  kms_key_id        = aws_kms_key.lambda_key.arn
 }
 
 # Optional Lambda Function URL
