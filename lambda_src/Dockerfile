@@ -1,8 +1,8 @@
 FROM public.ecr.aws/lambda/python:3.11
 
 # Create a non-root user for security
-RUN adduser --disabled-password --gecos "" appuser \
-    && chown -R appuser /var/task
+RUN useradd -u 1000 -m appuser && \
+    chown -R appuser /var/task
 
 # Copy function code
 COPY handler.py ./
