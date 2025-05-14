@@ -1,10 +1,5 @@
 FROM public.ecr.aws/lambda/python:3.11
 
-# Create a non-root user for security
-RUN yum install -y shadow-utils && \
-    useradd -u 1000 appuser && \
-    chown -R appuser /var/task
-
 # Copy function code
 COPY handler.py ./
 COPY requirements.txt ./
@@ -16,7 +11,7 @@ RUN pip install --upgrade setuptools>=70.0.0
 RUN pip install -r requirements.txt
 
 # Switch to non-root user
-USER appuser
+USER 1000
 
 # Add a healthcheck to ensure handler.py and function exist
 HEALTHCHECK CMD python -c "from handler import lambda_handler" || exit 1
