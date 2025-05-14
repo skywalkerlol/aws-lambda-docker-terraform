@@ -308,6 +308,7 @@ jobs:
       run: |
         echo "Docker Image URI: ${{ env.DOCKER_IMAGE_URI }}"
         echo "Docker Image Tag: ${{ env.DOCKER_IMAGE_TAG }}"
+        echo "Docker Image State: ${{ env.NEW_IMAGE_PUSHED }}"
   #   - name: Configure AWS Credentials Action For GitHub Actions
   #     uses: aws-actions/configure-aws-credentials@v1-node16
   #     with:
