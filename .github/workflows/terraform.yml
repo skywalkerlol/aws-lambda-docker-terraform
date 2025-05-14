@@ -378,7 +378,7 @@ jobs:
       if: github.ref != 'refs/heads/main' || github.event_name == 'pull_request'
       run: |
         terraform plan -no-color -input=false \
-        -var="image_tag=${{ env.DOCKER_IMAGE_URI }}" \
+        -var="image_uri=${{ env.DOCKER_IMAGE_URI }}" \
         -out=TFplan.JSON
       continue-on-error: true
 
@@ -437,4 +437,4 @@ jobs:
       if: github.ref == 'refs/heads/main'
       run: |
         terraform apply -auto-approve -input=false \
-        -var="image_tag=${{ env.DOCKER_IMAGE_URI }}"
+        -var="image_uri=${{ env.DOCKER_IMAGE_URI }}"
