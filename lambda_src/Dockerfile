@@ -1,7 +1,8 @@
 FROM public.ecr.aws/lambda/python:3.11
 
 # Create a non-root user for security
-RUN useradd -u 1000 -m appuser && \
+RUN yum install -y shadow-utils && \
+    useradd -u 1000 appuser && \
     chown -R appuser /var/task
 
 # Copy function code
