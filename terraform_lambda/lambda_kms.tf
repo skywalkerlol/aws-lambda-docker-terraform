@@ -15,7 +15,7 @@ data "aws_iam_policy_document" "encrypt_lambda_environments_policy" {
     sid       = "Enable IAM User Permissions"
     effect    = "Allow"
     actions   = ["kms:*"]
-    resources = ["*"]
+    resources = ["arn:aws:kms:${var.region}:${data.aws_caller_identity.current.account_id}:key/*"]
     principals {
       type        = "AWS"
       identifiers = [local.principal_root_arn]
