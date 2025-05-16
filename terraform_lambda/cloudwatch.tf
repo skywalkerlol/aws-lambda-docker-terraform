@@ -2,23 +2,23 @@
 resource "aws_cloudwatch_log_group" "lambda_log" {
   name              = "${var.log_group_prefix}${var.name}"
   retention_in_days = var.log_retention_days
-  kms_key_id        = aws_kms_key.ecrypt_cloudwatch.arn
-  depends_on        = [aws_kms_key_policy.ecrypt_cloudwatch]
+  kms_key_id        = aws_kms_key.encrypt_cloudwatch.arn
+  depends_on        = [aws_kms_key_policy.encrypt_cloudwatch]
 }
 #https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/kms_key
-resource "aws_kms_key" "ecrypt_cloudwatch" {
+resource "aws_kms_key" "encrypt_cloudwatch" {
   enable_key_rotation     = true
   description             = "Key to encrypt all the lambda cloudwatch logs for ${var.name}."
   deletion_window_in_days = 7
 }
 #https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/kms_alias
-resource "aws_kms_alias" "ecrypt_cloudwatch" {
+resource "aws_kms_alias" "encrypt_cloudwatch" {
   name          = "alias/${var.name}-encrypt-cloudwatch-logs"
-  target_key_id = aws_kms_key.ecrypt_cloudwatch.key_id
+  target_key_id = aws_kms_key.encrypt_cloudwatch.key_id
 }
 
 #https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document
-data "aws_iam_policy_document" "ecrypt_cloudwatch" {
+data "aws_iam_policy_document" "encrypt_cloudwatch" {
   statement {
     sid       = "Enable IAM User Permissions"
     effect    = "Allow"
@@ -54,7 +54,7 @@ data "aws_iam_policy_document" "ecrypt_cloudwatch" {
   }
 }
 #https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/kms_key_policy
-resource "aws_kms_key_policy" "ecrypt_cloudwatch" {
-  key_id = aws_kms_key.ecrypt_cloudwatch.id
-  policy = data.aws_iam_policy_document.ecrypt_cloudwatch.json
+resource "aws_kms_key_policy" "encrypt_cloudwatch" {
+  key_id = aws_kms_key.encrypt_cloudwatch.id
+  policy = data.aws_iam_policy_document.encrypt_cloudwatch.json
 }

@@ -1,8 +1,10 @@
 # Dead Letter Queue for Lambda failures
 #https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/sqs_queue
 resource "aws_sqs_queue" "lambda_dead_letter_queue" {
-  name              = "${var.name}-dead-letter-queue"
-  kms_master_key_id = aws_kms_key.encrypt_sqs.id
+  name                       = "${var.name}-dead-letter-queue"
+  kms_master_key_id          = aws_kms_key.encrypt_sqs.id
+  message_retention_seconds  = 1209600
+  visibility_timeout_seconds = 30
 }
 #https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/kms_key
 resource "aws_kms_key" "encrypt_sqs" {
