@@ -16,6 +16,9 @@ resource "aws_lambda_function" "container_lambda" {
   tracing_config {
     mode = "Active"
   }
+  environment {
+    variables = {}
+  }
   dead_letter_config {
     target_arn = aws_sqs_queue.lambda_dead_letter_queue.arn
   }
