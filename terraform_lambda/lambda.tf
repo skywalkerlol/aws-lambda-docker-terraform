@@ -22,6 +22,9 @@ resource "aws_lambda_function" "container_lambda" {
   dead_letter_config {
     target_arn = aws_sqs_queue.lambda_dead_letter_queue.arn
   }
+  #checkov:skip=CKV_AWS_272: Ensure AWS Lambda function is configured to validate code-signing
+  #Code signing is not supported for Lambda running Docker containers.
+  #https://docs.aws.amazon.com/lambda/latest/dg/configuration-codesigning-create.html
 }
 
 #https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role
