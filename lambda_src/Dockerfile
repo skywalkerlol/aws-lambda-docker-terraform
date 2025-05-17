@@ -1,11 +1,7 @@
 FROM public.ecr.aws/lambda/python:3.11
 
-# Create a non-root user for security
-RUN adduser --disabled-password --gecos "" appuser \
-    && chown -R appuser /var/task
-
 # Copy function code
-COPY app.py ./
+COPY handler.py ./
 COPY requirements.txt ./
 
 # Upgrade setuptools to a secure version
@@ -15,7 +11,7 @@ RUN pip install --upgrade setuptools>=70.0.0
 RUN pip install -r requirements.txt
 
 # Switch to non-root user
-USER appuser
+USER 1000
 
 # Add a healthcheck to ensure handler.py and function exist
 HEALTHCHECK CMD python -c "from handler import lambda_handler" || exit 1

@@ -23,3 +23,33 @@ variable "name" {
   type        = string
   default     = "app-8"
 }
+variable "log_group_prefix" {
+  description = "The name of the log group."
+  type        = string
+  default     = "/aws/lambda/"
+}
+variable "image_uri" {
+  description = "ECR Image URI for the Lambda container image (format: {account}.dkr.ecr.{region}.amazonaws.com/{repo}:{tag})"
+  type        = string
+}
+variable "memory_size" {
+  description = "Memory size for the Lambda function (in MB)"
+  type        = number
+  default     = 128
+}
+
+variable "timeout" {
+  description = "Timeout for the Lambda function (in seconds)"
+  type        = number
+  default     = 30
+}
+variable "log_retention_days" {
+  description = "Number of days to retain Lambda logs"
+  type        = number
+  default     = 365
+}
+variable "reserved_concurrency" {
+  description = "Reserved concurrent executions for the Lambda function"
+  type        = number
+  default     = 100
+}
