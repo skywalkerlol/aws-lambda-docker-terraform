@@ -23,11 +23,11 @@ resource "aws_lambda_function" "container_lambda" {
     target_arn = aws_sqs_queue.lambda_dead_letter_queue.arn
   }
   #checkov:skip=CKV_AWS_272: "Ensure AWS Lambda function is configured to validate code-signing"
-  #Code signing is not supported for Lambda running Docker containers.
+  #Skip-reason: Code signing is not supported for Lambda running Docker containers.
   #https://docs.aws.amazon.com/lambda/latest/dg/configuration-codesigning-create.html
 
   #checkov:skip=CKV_AWS_117: "Ensure that AWS Lambda function is configured inside a VPC"
-  #Primary purpose of this use case is to demonstrate how to create a Lambda function using a container image
+  #Skip-reason: Primary purpose of this use case is to demonstrate how to create a Lambda function using a container image
   #hence not included VPC configuration.
 }
 
