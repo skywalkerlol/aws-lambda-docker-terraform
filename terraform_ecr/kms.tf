@@ -7,7 +7,7 @@ resource "aws_kms_key" "ecr_kms_key" {
   enable_key_rotation     = true
   tags                    = { "Name" = "${var.name}-encrypt-ecr" }
 }
-# KMS key policy allowing AccountB to use the key for ECR image encryption/decryption
+
 #https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/kms_alias
 resource "aws_kms_alias" "ecr_key_alias" {
   name          = "alias/${var.name}-encrypt-ecr"
@@ -20,7 +20,6 @@ resource "aws_kms_key_policy" "ecr_key_policy" {
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
-      # Allow Central AWS account to perform any KMS actions
       {
         Sid    = "Enable IAM User Permissions"
         Action = ["kms:*"]
