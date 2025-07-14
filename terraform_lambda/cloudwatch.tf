@@ -29,7 +29,6 @@ data "aws_iam_policy_document" "encrypt_cloudwatch" {
       identifiers = [local.principal_root_arn]
     }
   }
-
   statement {
     sid    = "Allow CloudWatch Logs to use the key"
     effect = "Allow"
