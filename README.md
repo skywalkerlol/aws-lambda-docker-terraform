@@ -6,7 +6,7 @@
 This repository demonstrates how to deploy a containerized Lambda function using Terraform and GitHub Actions. It showcases a complete CI/CD pipeline that:
 
 1. Creates an Amazon ECR repository with encryption
-2. Builds a Docker image, scans it for vulnerabilities, and pushes it to ECR
+2. Builds a Docker image, scans it for vulnerabilities, and pushes it to Amazon ECR
 3. Deploys an AWS Lambda function using the Docker container image
 
 The workflow is designed to be secure, efficient, and follows infrastructure-as-code best practices. Please review [automate-aws-lambda-deployment-with-docker-images-terraform-and-github-actions](https://skundunotes.com/2025/07/14/automate-aws-lambda-deployment-with-docker-images-terraform-and-github-actions/) for more information.
@@ -14,7 +14,7 @@ The workflow is designed to be secure, efficient, and follows infrastructure-as-
 ## Deployment Process
 The GitHub Actions workflow consists of three main jobs:
 
-1. **ECR Creation (`ecr_create`)**: 
+1. **Aamzon ECR Creation (`ecr_create`)**: 
    - Provisions an Amazon ECR repository using Terraform in the `terraform_ecr` folder
    - Sets up repository encryption
    - Outputs the repository URL and name for subsequent jobs
@@ -22,16 +22,16 @@ The GitHub Actions workflow consists of three main jobs:
 2. **Docker Build and Push (`docker_build_push`)**:
    - Builds a Docker image from the `Dockerfile` in the `lambda_src` folder
    - Scans the image for vulnerabilities using Trivy
-   - Pushes the image to ECR (only on `main` branch)
+   - Pushes the image to Aamzon ECR (only on `main` branch)
    - Passes the image URI and tag to the next job
 
-3. **Lambda Deployment (`deploy_lambda`)**:
+3. **AWS Lambda Deployment (`deploy_lambda`)**:
    - Deploys an AWS Lambda function using Terraform code in the `terraform_lambda` folder
-   - Configures the Lambda to use the Docker image from ECR
+   - Configures the Lambda to use the Docker image from Amazon ECR
    - Sets up necessary IAM roles and permissions for the Lambda to use
 
 The pipeline includes conditional logic to ensure that:
-- Docker images are only pushed to ECR on the `main` branch
+- Docker images are only pushed to Amazon ECR on the `main` branch
 - Infrastructure changes are applied only on the `main` branch
 - Pull requests receive cost estimates via Infracost
 - Security scanning is performed on all builds
@@ -48,9 +48,9 @@ For this code to function without errors, an OpenID Connect identity provider ne
 Ensure that the policy attached to the IAM role whose credentials are being used in this configuration has permission to create and manage all the resources that are included in this repository, including ECR repositories, Lambda functions, and IAM roles.
 <br />
 <br />Review the code, including the [`terraform.yml`](./.github/workflows/terraform.yml) to understand the steps in the GitHub Actions pipeline. The repository is organized into three main components:
-- `terraform_ecr/`: Terraform code for creating the ECR repository
+- `terraform_ecr/`: Terraform code for creating the Amazon ECR repository
 - `lambda_src/`: Source code for the Lambda function and Dockerfile
-- `terraform_lambda/`: Terraform code for deploying the Lambda function
+- `terraform_lambda/`: Terraform code for deploying the AWS Lambda function
 <br />To check the pipeline logs, click on the **Build Badge** (terraform-infra-provisioning) above the image in this ReadMe.
 
 ## Contributing
